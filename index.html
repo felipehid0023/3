@@ -36,11 +36,13 @@ body{ font-family: var(--font-ui); background: var(--verde-claro); color: var(--
 .panel h3{ font-size: 15px; color: var(--verde-oscuro-2); margin-bottom: 4px; }
 .panel .subtitle{ font-size: 12px; color: var(--texto-dim); margin-bottom: 14px; }
 
-.formula-box{
-  font-family: var(--font-mono); font-size: 12.5px; color: var(--verde-oscuro-2);
+.explain-box{
+  font-family: var(--font-ui); font-size: 13px; color: var(--texto);
   background: var(--verde-claro); border-left: 3px solid var(--verde-medio);
   border-radius: 6px; padding: 10px 12px; margin: 10px 0; overflow-wrap: anywhere;
+  line-height: 1.5;
 }
+.explain-box b{ color: var(--verde-oscuro-2); }
 
 select, input[type=text]{
   font-family: var(--font-ui); font-size: 13px; padding: 6px 10px;
@@ -93,7 +95,7 @@ select, input[type=text]{
 <div class="panel">
   <h3>1. Funciones lógicas — Clasificación de rentabilidad por viaje</h3>
   <div class="subtitle">Clasifica los 361 viajes según su margen, usando SI anidado</div>
-  <div class="formula-box">=SI(margen_soles&gt;0;"Rentable";SI(margen_soles&gt;-300;"Ajustado";"Pérdida alta"))</div>
+  <div class="explain-box"><b>Función lógica anidada (SI):</b> evalúa el margen de cada viaje en tres niveles — si es mayor a S/ 0 lo clasifica como "Rentable"; si no llega a eso pero se mantiene por encima de -S/ 300 lo marca como "Ajustado"; y si cae por debajo, lo marca como "Pérdida alta".</div>
   <div class="badge-row" id="logicBadges"></div>
 </div>
 
@@ -105,7 +107,7 @@ select, input[type=text]{
     <div><label>Región</label><select id="sifRegion"></select></div>
     <div><label>Mes</label><select id="sifMes"></select></div>
   </div>
-  <div class="formula-box" id="sifFormula"></div>
+  <div class="explain-box" id="sifFormula"></div>
   <div class="result-row">
     <div class="result"><div class="val" id="sifSuma">-</div><div class="lab">Ingreso total (SUMAR.SI.CONJUNTO)</div></div>
     <div class="result"><div class="val" id="sifCont">-</div><div class="lab">N.º de viajes (CONTAR.SI.CONJUNTO)</div></div>
@@ -119,7 +121,7 @@ select, input[type=text]{
   <div class="controls">
     <div><label>id_transportista</label><select id="vlookupId"></select></div>
   </div>
-  <div class="formula-box" id="vlookupFormula"></div>
+  <div class="explain-box" id="vlookupFormula"></div>
   <div class="lookup-card" id="vlookupResult"></div>
 </div>
 
@@ -131,7 +133,7 @@ select, input[type=text]{
     <div><label>Tipo de vehículo</label><select id="idxTipo"></select></div>
     <div><label>Marca</label><select id="idxMarca"></select></div>
   </div>
-  <div class="formula-box" id="idxFormula"></div>
+  <div class="explain-box" id="idxFormula"></div>
   <div class="lookup-card" id="idxResult"></div>
 </div>
 
@@ -183,8 +185,7 @@ function updateSif(){
   document.getElementById('sifSuma').textContent = fmtMoney(suma);
   document.getElementById('sifCont').textContent = match.length;
   document.getElementById('sifFormula').innerHTML =
-    `=SUMAR.SI.CONJUNTO(ingreso_flete_soles; region_origen; "${region}"; mes; "${mes}")<br>` +
-    `=CONTAR.SI.CONJUNTO(region_origen; "${region}"; mes; "${mes}")`;
+    `<b>Suma y cuenta condicionadas (SUMAR.SI.CONJUNTO / CONTAR.SI.CONJUNTO):</b> suman el ingreso de flete y cuentan los viajes que cumplen dos condiciones a la vez — región de origen = "${region}" y mes = "${mes}".`;
 }
 selRegion.addEventListener('change', updateSif);
 selMes.addEventListener('change', updateSif);
@@ -197,8 +198,8 @@ empresas.forEach(e => selVlookup.innerHTML += `<option value="${e.id_transportis
 function updateVlookup(){
   const id = selVlookup.value;
   const emp = empresas.find(e => e.id_transportista === id);
-  document.getElementById('vlookupFormula').textContent =
-    `=BUSCARX("${id}"; empresas[id_transportista]; empresas[nombre_transportista])`;
+  document.getElementById('vlookupFormula').innerHTML =
+    `<b>Búsqueda exacta (BUSCARX):</b> busca el código "${id}" en la tabla de empresas y trae automáticamente el nombre del transportista, su ciudad base y su estado, sin necesidad de buscarlo a mano.`;
   document.getElementById('vlookupResult').innerHTML = emp ? `
     <div class="row"><span>Nombre</span><b>${emp.nombre_transportista}</b></div>
     <div class="row"><span>Ciudad base</span><b>${emp.ciudad_base}</b></div>
@@ -219,8 +220,8 @@ marcas.forEach(m => selMarca.innerHTML += `<option value="${m}">${m.toUpperCase(
 function updateIdx(){
   const tipo = selTipo.value, marca = selMarca.value;
   const found = vehiculos.find(v => v.tipo_norm === tipo && v.marca_norm === marca);
-  document.getElementById('idxFormula').textContent =
-    `=INDICE(capacidad_carga_kg; COINCIDIR(1; (tipo_vehiculo="${tipo}")*(marca="${marca}"); 0))`;
+  document.getElementById('idxFormula').innerHTML =
+    `<b>Búsqueda por dos criterios cruzados (ÍNDICE + COINCIDIR):</b> ubica la fila donde el tipo de vehículo es "${tipo}" y la marca es "${marca}" al mismo tiempo, y trae la capacidad de carga de esa fila exacta.`;
   document.getElementById('idxResult').innerHTML = found ? `
     <div class="row"><span>Vehículo</span><b>${found.id_vehiculo}</b></div>
     <div class="row"><span>Capacidad de carga</span><b>${found.capacidad_carga_kg.toLocaleString('es-PE')} kg</b></div>
